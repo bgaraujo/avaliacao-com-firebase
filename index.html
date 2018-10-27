@@ -1,0 +1,69 @@
+<script src="https://www.gstatic.com/firebasejs/5.5.6/firebase.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyB4-g8T9oMaJ08R9-vvwxgaOEuOH_fdPhY",
+    authDomain: "assessments-dda74.firebaseapp.com",
+    databaseURL: "https://assessments-dda74.firebaseio.com",
+    projectId: "assessments-dda74",
+    storageBucket: "assessments-dda74.appspot.com",
+    messagingSenderId: "631671951607"
+  };
+  firebase.initializeApp(config);
+
+/*
+    Aqui vai a ideia 
+*/
+function gravaResenha(sku,user,nota,resenha) {
+    var id = window.btoa(user);
+  firebase.database().ref('cobasi/' + sku +"/"+id).set({
+    nota:nota,
+    resenha:resenha
+  });
+}
+
+function getComments(ref){
+    var starCountRef = firebase.database().ref('cobasi/'+ref);
+    var sendResenha = "<li class=\"form_send\">"+
+        "<input type=\"text\" rate-email=\""+ref+"\" placeholder=\"email\">"+
+        "<textarea rate-resenha=\""+ref+"\" placeholder=\"Conte-nos\"></textarea>"+
+        "<button data-send=\""+ref+"\">Enviar</button>"+
+    "</li>"
+
+    starCountRef.on('value', function(snapshot) {
+        let response = snapshot.val();
+        
+        var content = "";
+        for (email in response) {
+            var decodeEmail = window.atob(email);
+            content += "<li>"+
+                "<div class=\"email_rate\">"+decodeEmail+"</div>"+
+                "<div class=\"star_rate\">"+response[email].nota+"</div>"+
+                "<div class=\"star_rate\">"+response[email].resenha+"</div>"+
+            "</li>";
+        }
+        $("[data-rate="+ref+"]").html("<ul>"+content+sendResenha+"</ul>");
+
+    });
+}
+
+$(document).ready(function(){
+    $("[data-rate]").each(function(){
+        var ref = $(this).data("rate");
+        getComments(ref);
+    });
+
+    $(document).on("click","[data-send]",function(){
+        var sku = $(this).data("send");
+        var email = $("[rate-email="+sku+"]").val();
+        var nota = 5;
+        var resenha = $("[rate-resenha="+sku+"]").val();
+        gravaResenha(sku,email,nota,resenha);
+    });
+});
+
+</script>
+
+<div data-rate="123"></div>
